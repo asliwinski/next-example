@@ -13,7 +13,9 @@ export default function UserCard({ user }: UserProps) {
       <div>{user.last_name}</div>
       <div>{user.phone}</div>
       <div>{user.email}</div>
-      <Link href={`/user`}>USER LINK</Link>
+      <Link href={`/user`} className="text-black">
+        USER LINK
+      </Link>
     </div>
   );
 }
