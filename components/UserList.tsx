@@ -2,9 +2,10 @@
 
 import { User } from "@/types/User";
 import UserCard from "./UserCard";
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import { getUsers } from "@/actions/getUsers";
 import { useInView } from "react-intersection-observer";
+import { Store, useUsersStore } from "@/store/users";
 
 type UserListProps = {
   initialUsers: User[];
@@ -13,21 +14,28 @@ type UserListProps = {
 const NUMBER_OF_USERS_TO_FETCH = 10;
 
 export default function UserList({ initialUsers }: UserListProps) {
-  const [offset, setOffset] = useState(NUMBER_OF_USERS_TO_FETCH);
-  const [users, setUsers] = useState<User[]>(initialUsers);
+  const { users, addUsers } = useUsersStore<Store>((state) => state);
   const { ref, inView } = useInView();
 
-  async function loadMoreUsers() {
-    const apiUsers = await getUsers(offset, NUMBER_OF_USERS_TO_FETCH);
-    setUsers([...users, ...apiUsers]);
-    setOffset(offset + NUMBER_OF_USERS_TO_FETCH);
-  }
+  useEffect(() => {
+    if (isFirstRender.current) {
+      addUsers(initialUsers);
+      isFirstRender.current = false;
+    }
+  }, []);
+
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
     if (inView) {
       loadMoreUsers();
     }
   }, [inView]);
+
+  async function loadMoreUsers() {
+    const apiUsers = await getUsers(users.length, NUMBER_OF_USERS_TO_FETCH);
+    addUsers(apiUsers);
+  }
 
   return (
     <div className="flex flex-col gap-3">
